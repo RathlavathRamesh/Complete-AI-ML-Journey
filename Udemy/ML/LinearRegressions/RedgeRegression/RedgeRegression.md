@@ -34,4 +34,3 @@
 # The regularization parameter λ controls the trade-off between fitting the data and keeping the coefficients small.
 # You can use this content directly in a .md file!
 
-# GPT-4.1 • 1x
