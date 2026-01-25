@@ -1,0 +1,11 @@
+unstructured[pdf]
+sentence-transformers
+transformers
+pymupdf
+python-magic
+langchain
+faiss-cpu
+fastapi
+uvicorn
+
+
