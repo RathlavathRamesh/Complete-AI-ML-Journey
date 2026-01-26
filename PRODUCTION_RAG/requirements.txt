@@ -4,8 +4,10 @@ transformers
 pymupdf
 python-magic
 langchain
+python-dotenv
 faiss-cpu
 fastapi
 uvicorn
-
+numpy
+groq
 

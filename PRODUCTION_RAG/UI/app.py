@@ -3,46 +3,101 @@ import requests
 
 API_URL = "http://127.0.0.1:8000/ask"
 
-st.set_page_config(page_title="Policy RAG Assistant", layout="centered")
+st.set_page_config(
+    page_title="Enterprise Policy RAG Assistant",
+    page_icon="📘",
+    layout="wide"
+)
 
-st.title("📄 Policy RAG Assistant")
-st.caption("Ask questions grounded in the policy document")
+# ================= HEADER =================
+st.markdown(
+    """
+    <h1 style='text-align:center;'>📘 Enterprise Policy RAG Assistant</h1>
+    <p style='text-align:center; color:gray;'>
+    Trustworthy policy question answering with evidence, metrics, and confidence.
+    </p>
+    """,
+    unsafe_allow_html=True
+)
 
-# Session state for chat history
+st.divider()
+
+# ================= SIDEBAR =================
+with st.sidebar:
+    st.markdown("## 🧠 System Overview")
+    st.markdown(
+        """
+        **Enterprise-grade RAG system**
+        
+        - 🔍 Dense retrieval (FAISS)
+        - 🎯 Cross-encoder re-ranking
+        - 🧠 Grounded LLM generation
+        - 🧪 Semantic faithfulness evaluation
+        - 📊 Transparent metrics & insights
+        
+        Built for **policy, HR, and compliance** use cases.
+        """
+    )
+
+    st.divider()
+    show_sources = st.checkbox("Show Evidence Sources", True)
+    show_metrics = st.checkbox("Show Detailed Metrics", False)
+
+# ================= SESSION STATE =================
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-# User input
-query = st.chat_input("Ask a policy-related question...")
+# ================= INPUT =================
+query = st.chat_input("Ask a policy-related question…")
 
 if query:
-    # Show user message
-    st.session_state.messages.append({"role": "user", "content": query})
-    with st.chat_message("user"):
-        st.markdown(query)
-
-    # Call backend API
-    with st.spinner("Thinking..."):
-        response = requests.post(
-            API_URL,
-            json={"question": query},
-            timeout=60
-        )
+    with st.spinner("🔎 Retrieving evidence and generating answer..."):
+        response = requests.post(API_URL, json={"question": query}, timeout=90)
 
     data = response.json()
+
     answer = data["answer"]
     sources = data["sources"]
+    metrics = data["metrics"]
+    insight = data["insight"]
 
-    # Show assistant response
-    assistant_content = f"{answer}\n\n---\n**Sources:**\n{sources}"
-    st.session_state.messages.append(
-        {"role": "assistant", "content": assistant_content}
-    )
+    # ================= KPI BAR =================
+    col1, col2, col3, col4 = st.columns(4)
 
-    with st.chat_message("assistant"):
-        st.markdown(assistant_content)
+    col1.metric("⏱ Retrieval (ms)", metrics["retrieval_time_ms"])
+    col2.metric("🎯 Re-rank (ms)", metrics["rerank_time_ms"])
+    col3.metric("🧠 Generation (ms)", metrics["generation_time_ms"])
+    col4.metric("🧪 Faithfulness", metrics["faithfulness_score"])
+
+    # ================= CONFIDENCE BADGE =================
+    if metrics["faithfulness_score"] >= 0.6:
+        st.success("🟢 High Confidence Answer")
+    elif metrics["faithfulness_score"] >= 0.35:
+        st.warning("🟡 Medium Confidence Answer")
+    else:
+        st.error("🔴 Low Confidence – Verify Manually")
+
+    st.divider()
+
+    # ================= ANSWER =================
+    st.markdown("## 🧠 Answer")
+    st.markdown(answer)
+
+    # ================= INSIGHTS =================
+    st.markdown("## 🔍 System Insights")
+    st.markdown(insight)
+
+    # ================= DETAILS =================
+    if show_sources or show_metrics:
+        st.divider()
+        left, right = st.columns(2)
+
+        if show_sources:
+            with left:
+                with st.expander("📚 Evidence & Citations", expanded=False):
+                    st.markdown(sources)
+
+        if show_metrics:
+            with right:
+                with st.expander("📊 Detailed Metrics", expanded=False):
+                    st.json(metrics)

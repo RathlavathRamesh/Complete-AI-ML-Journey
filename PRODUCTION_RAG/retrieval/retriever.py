@@ -1,9 +1,11 @@
 from sentence_transformers import SentenceTransformer
 from vectorstore.faiss_store import FaissVectorStore
+from sentence_transformers import CrossEncoder
+import time
 
 # Same embedding model used earlier
 model = SentenceTransformer("all-MiniLM-L6-v2")
-
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 def load_retriever(path: str):
     store = FaissVectorStore(dim=384)
     store.load(path)
