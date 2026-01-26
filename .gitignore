@@ -1,6 +1,4 @@
 /venv
 .env
 __pycache__/
-*.pkl
-*.faiss
 .DS_Store
