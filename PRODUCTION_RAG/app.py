@@ -1,7 +1,7 @@
 import streamlit as st
-import requests
+from app_core import answer_question
 
-API_URL = "http://127.0.0.1:8000/ask"
+# Used for local API testing only. Streamlit deployment uses app_core.py
 
 st.set_page_config(
     page_title="Enterprise Policy RAG Assistant",
@@ -52,9 +52,8 @@ query = st.chat_input("Ask a policy-related question…")
 
 if query:
     with st.spinner("🔎 Retrieving evidence and generating answer..."):
-        response = requests.post(API_URL, json={"question": query}, timeout=90)
+        data = answer_question(query)
 
-    data = response.json()
 
     answer = data["answer"]
     sources = data["sources"]

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-PORT=${PORT:-8000}
+PORT=${PORT:-8501}
 
-uvicorn api.main:app --host 0.0.0.0 --port $PORT
+streamlit run app.py --server.port $PORT --server.address 0.0.0.0
