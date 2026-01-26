@@ -1,3 +1,4 @@
+import os
 import time
 
 from retrieval.retriever import load_retriever, retrieve
@@ -8,7 +9,9 @@ from evaluation.faithfulness import faithfulness
 from utils.context import build_context, format_sources
 
 # Load vector store ONCE
-store = load_retriever("vectorstore_data")
+base_path = os.path.dirname(__file__)
+store_path = os.path.join(base_path, "vectorstore_data")
+store = load_retriever(store_path)
 
 def answer_question(question: str):
     # 1️⃣ RETRIEVAL
