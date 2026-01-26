@@ -1,20 +1,23 @@
 import streamlit as st
 from app_core import answer_question
 
-# Used for local API testing only. Streamlit deployment uses app_core.py
-
+# ======================================================
+# PAGE CONFIG
+# ======================================================
 st.set_page_config(
     page_title="Enterprise Policy RAG Assistant",
     page_icon="📘",
     layout="wide"
 )
 
-# ================= HEADER =================
+# ======================================================
+# HEADER
+# ======================================================
 st.markdown(
     """
     <h1 style='text-align:center;'>📘 Enterprise Policy RAG Assistant</h1>
-    <p style='text-align:center; color:gray;'>
-    Trustworthy policy question answering with evidence, metrics, and confidence.
+    <p style='text-align:center; color:gray; font-size:16px;'>
+    An explainable, enterprise-grade Retrieval-Augmented Generation (RAG) system for policy, HR, and compliance.
     </p>
     """,
     unsafe_allow_html=True
@@ -22,81 +25,107 @@ st.markdown(
 
 st.divider()
 
-# ================= SIDEBAR =================
+# ======================================================
+# SIDEBAR
+# ======================================================
 with st.sidebar:
     st.markdown("## 🧠 System Overview")
+
     st.markdown(
         """
-        **Enterprise-grade RAG system**
-        
-        - 🔍 Dense retrieval (FAISS)
-        - 🎯 Cross-encoder re-ranking
-        - 🧠 Grounded LLM generation
-        - 🧪 Semantic faithfulness evaluation
-        - 📊 Transparent metrics & insights
-        
-        Built for **policy, HR, and compliance** use cases.
+        This application demonstrates a **production-style RAG pipeline**:
+
+        - 🔍 **Dense Retrieval** (FAISS)
+        - 🎯 **Cross-Encoder Re-Ranking**
+        - 🧠 **Grounded LLM Generation**
+        - 🧪 **Faithfulness Evaluation**
+        - 📊 **Transparent Metrics & Insights**
+
+        Designed for **enterprise policy decision-support**, not just chat.
         """
     )
 
     st.divider()
-    show_sources = st.checkbox("Show Evidence Sources", True)
-    show_metrics = st.checkbox("Show Detailed Metrics", False)
 
-# ================= SESSION STATE =================
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.markdown("### ⚙️ Display Controls")
+    show_sources = st.checkbox("Show Evidence & Citations", True)
+    show_metrics = st.checkbox("Show Raw Metrics (JSON)", False)
 
-# ================= INPUT =================
+# ======================================================
+# INPUT
+# ======================================================
 query = st.chat_input("Ask a policy-related question…")
 
 if query:
-    with st.spinner("🔎 Retrieving evidence and generating answer..."):
+    with st.spinner("🔎 Retrieving evidence and generating a grounded answer…"):
         data = answer_question(query)
-
 
     answer = data["answer"]
     sources = data["sources"]
     metrics = data["metrics"]
     insight = data["insight"]
 
-    # ================= KPI BAR =================
-    col1, col2, col3, col4 = st.columns(4)
+    # ======================================================
+    # TOP KPI / TRUST BAR
+    # ======================================================
+    st.markdown("### 📊 System Performance Snapshot")
 
-    col1.metric("⏱ Retrieval (ms)", metrics["retrieval_time_ms"])
-    col2.metric("🎯 Re-rank (ms)", metrics["rerank_time_ms"])
-    col3.metric("🧠 Generation (ms)", metrics["generation_time_ms"])
-    col4.metric("🧪 Faithfulness", metrics["faithfulness_score"])
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    kpi1.metric("⏱ Retrieval (ms)", metrics["retrieval_time_ms"])
+    kpi2.metric("🎯 Re-rank (ms)", metrics["rerank_time_ms"])
+    kpi3.metric("🧠 Generation (ms)", metrics["generation_time_ms"])
+    kpi4.metric("🧪 Faithfulness", metrics["faithfulness_score"])
 
-    # ================= CONFIDENCE BADGE =================
+    # ------------------------------------------------------
+    # TRUST / CONFIDENCE INTERPRETATION
+    # ------------------------------------------------------
+    st.markdown("### 🔒 Trust & Confidence Assessment")
+
     if metrics["faithfulness_score"] >= 0.6:
-        st.success("🟢 High Confidence Answer")
+        st.success("🟢 **High Confidence** — The answer is strongly supported by retrieved policy content.")
     elif metrics["faithfulness_score"] >= 0.35:
-        st.warning("🟡 Medium Confidence Answer")
+        st.warning("🟡 **Medium Confidence** — The answer is mostly grounded, but review sources if critical.")
     else:
-        st.error("🔴 Low Confidence – Verify Manually")
+        st.error("🔴 **Low Confidence** — The answer may not be fully supported. Manual verification recommended.")
 
     st.divider()
 
-    # ================= ANSWER =================
+    # ======================================================
+    # ANSWER
+    # ======================================================
     st.markdown("## 🧠 Answer")
     st.markdown(answer)
 
-    # ================= INSIGHTS =================
-    st.markdown("## 🔍 System Insights")
+    # ======================================================
+    # SYSTEM INSIGHTS (LLM-INTERPRETED)
+    # ======================================================
+    st.markdown("## 🔍 System Insights (LLM-Interpreted)")
+    st.markdown(
+        """
+        The following insights are generated by an LLM that **interprets system metrics**
+        to explain reliability, performance, and suitability for decision-making.
+        """
+    )
     st.markdown(insight)
 
-    # ================= DETAILS =================
-    if show_sources or show_metrics:
-        st.divider()
-        left, right = st.columns(2)
+    # ======================================================
+    # EVIDENCE & METRICS
+    # ======================================================
+    st.divider()
+    left, right = st.columns(2)
 
-        if show_sources:
-            with left:
-                with st.expander("📚 Evidence & Citations", expanded=False):
-                    st.markdown(sources)
+    if show_sources:
+        with left:
+            with st.expander("📚 Evidence & Citations", expanded=False):
+                st.markdown(
+                    """
+                    Below are the document segments used to generate this answer.
+                    This ensures **traceability and auditability**.
+                    """
+                )
+                st.markdown(sources)
 
-        if show_metrics:
-            with right:
-                with st.expander("📊 Detailed Metrics", expanded=False):
-                    st.json(metrics)
+    if show_metrics:
+        with right:
+            with st.expander("📊 Raw Evaluation Metrics (Debug / Audit)", expanded=False):
+                st.json(metrics)
